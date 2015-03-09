@@ -47,3 +47,8 @@ when you hit `/ding`, the route will reply with
 }
 ```
 
+## Plugin Options
+The following options are available when registering the plugin:
+- _'path'_ - the path where the route will be registered.  Default is /ding.
+- _'objectName'_ - the name of the object returned.  Can be a string or `false` to put the properties at the root level.  Defaults to "ding".
+- _'otherData'_ - static object to be merged with the info object.  Defaults to `null`.
