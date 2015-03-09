@@ -1,8 +1,8 @@
 Ding Route Plugin for Hapi
 ==========================
-
 [![NPM](https://nodei.co/npm/hapi-ding.png)](https://nodei.co/npm/hapi-ding/)
 
+[![npm version](https://badge.fury.io/js/hapi-ding.svg)](http://badge.fury.io/js/hapi-ding)
 [![Build Status](https://travis-ci.org/dialexa/hapi-ding.svg)](https://travis-ci.org/dialexa/hapi-ding)
 
 This Hapi plugin exposes a route at /ding (by default), which responds with useful server information.
