@@ -87,50 +87,52 @@ describe('Default /ding response', function(){
   });
 });
 
-// describe('Hapi load reporting', function(){
-//   it('should reply with heap', function(done){
-//     var server = new Hapi.Server({load: { sampleInterval: 1000 }});
-//     var con = server.connection({ host: 'test' });
+describe('Hapi load reporting', function(){
+  it('should reply with heap', function(done){
+    var server = new Hapi.Server({load: { sampleInterval: 1000 }}).connection({ host: 'test' });
 
-//     con.register({register: require('../')}, function() {
-//       server.start(function(){
-//         con.inject('/ding', function(res){
-//           expect(res.result.ding).to.be.an.object();
-//           expect(res.result.ding.heap).to.be.a.number();
-//           server.stop(done);
-//         });
-//       });
-//     });
-//   });
+    server.register({register: require('../')}, function() {
+      server.connections[0]._load._process.load.heapUsed = 100000;
+      server.connections[0]._load.check = function(){ return false; };
+      server.inject('/ding', function(res){
+        expect(res.result.ding).to.be.an.object();
+        expect(res.result.ding.heap).to.be.a.number();
+        expect(res.result.ding.heap).to.equal(100000);
+        done();
+      });
+    });
+  });
 
-//   it('should reply with loop', function(done){
-//     var server = new Hapi.Server({load: { sampleInterval: 1000 }});
-//     server.connection({ host: 'test' });
+  it('should reply with heap', function(done){
+    var server = new Hapi.Server({load: { sampleInterval: 1000 }}).connection({ host: 'test' });
 
-//     server.register({register: require('../')}, function() {
-//       server.start(function(){
-//         server.inject('/ding', function(res){
-//           expect(res.result.ding).to.be.an.object();
-//           expect(res.result.ding.loop).to.be.a.number();
-//           server.stop(done);
-//         });
-//       });
-//     });
-//   });
+    server.register({register: require('../')}, function() {
+      server.connections[0]._load._process.load.eventLoopDelay = 1.34;
+      server.connections[0]._load.check = function(){ return false; };
+      server.inject('/ding', function(res){
+        expect(res.result.ding).to.be.an.object();
+        expect(res.result.ding.loop).to.be.a.number();
+        expect(res.result.ding.loop).to.equal(1.34);
+        done();
+      });
+    });
+  });
 
-//   it('should not reply with heap or loop if the server does not have ', function(done){
-//     var server = new Hapi.Server().connection({ host: 'test' });
+  it('should not reply with heap or loop if the server does not have the load settings', function(done){
+    var server = new Hapi.Server().connection({ host: 'test' });
 
-//     server.register({register: require('../')}, function() {
-//       server.inject('/ding', function(res){
-//         expect(res.result.ding).to.be.an.object();
-//         expect(res.result.ding.loop).to.be.undefined();
-//         expect(res.result.ding.heap).to.be.undefined();
-//         done();
-//       });
-//     });
-//   });
-// });
+    server.register({register: require('../')}, function() {
+      server.connections[0]._load._process.load.eventLoopDelay = 1.34;
+      server.connections[0]._load.check = function(){ return false; };
+      server.inject('/ding', function(res){
+        expect(res.result.ding).to.be.an.object();
+        expect(res.result.ding.loop).to.be.undefined();
+        expect(res.result.ding.heap).to.be.undefined();
+        done();
+      });
+    });
+  });
+});
 
 describe('Custom /ding response', function(){
   it('should reply with given other data', function(done){
