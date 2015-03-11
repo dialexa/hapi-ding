@@ -11,12 +11,12 @@
   "license": "MIT",
   "dependencies": {
     "hoek": "^2.11.1",
-    "joi": "^6.0.3",
-    "hapi": ">=8"
+    "joi": "^6.0.3"
   },
   "devDependencies": {
     "code": "^1.3.0",
-    "lab": "^5.4.0",
+    "hapi": "~8.2.0",
+    "lab": "^5.5.0",
     "sinon": "^1.13.0"
   }
 }
