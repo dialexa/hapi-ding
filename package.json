@@ -4,7 +4,8 @@
   "description": "Informational status page for Hapi apps",
   "main": "index.js",
   "scripts": {
-    "test": "lab -r console -t 100 -a code"
+    "test": "lab -r console -t 100 -a code",
+    "test-ci": "lab -r lcov -t 100 -a code | ./node_modules/.bin/coveralls"
   },
   "repository": "git://github.com/dialexa/hapi-ding",
   "author": "Powell Kinney <powell@dialexa.com>",
@@ -15,6 +16,7 @@
   },
   "devDependencies": {
     "code": "^1.3.0",
+    "coveralls": "^2.11.2",
     "hapi": "^8.3.1",
     "lab": "^5.5.0"
   }
