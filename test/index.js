@@ -41,6 +41,14 @@ describe('Registration', function(){
     });
   });
 
+  it('should let you set config options', function(done){
+    server.register({register: require('../'), options: {config: {description: 'Custom Hapi Ding'}}}, function() {
+      var routes = server.table();
+      expect(routes[0].table[0].settings.description).to.equal('Custom Hapi Ding');
+      done();
+    });
+  });
+
   it('should not let you set unknown options', function(done){
     server.register({register: require('../'), options: {badName: {foo: 'bar'}}}, function(err) {
       expect(err).to.not.be.null();
