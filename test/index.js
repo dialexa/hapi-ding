@@ -5,6 +5,7 @@ const Hapi = require('hapi');
 
 const lab = exports.lab = Lab.script();
 const beforeEach = lab.beforeEach;
+const afterEach = lab.afterEach;
 const describe = lab.experiment;
 const it = lab.test;
 const expect = require('code').expect;
@@ -13,7 +14,7 @@ describe('Registration', () => {
   let server;
 
   beforeEach(() => {
-    server = Hapi.Server({ host: 'test' });
+    server = Hapi.Server({ });
   });
 
   it('should register', async () => {
@@ -48,13 +49,14 @@ describe('Registration', () => {
       await server.register({ plugin: require('../'), options: { badName: { foo: 'bar' } } });
     } catch (err) {
       expect(err).to.be.an.object();
-      expect(err.ValidationError).to.include('badName');
+      expect(err.name).to.equal('ValidationError');
+      expect(err.details[0].message).to.include('badName');
     }
   });
 
   describe('Default /ding response', () => {
     beforeEach(async () => {
-      server = Hapi.Server({ host: 'test' });
+      server = Hapi.Server({ });
       await server.register({ plugin: require('../') });
     });
 
@@ -83,28 +85,30 @@ describe('Registration', () => {
     });
   });
 
-  describe.only('Hapi load reporting', () => {
-    it('should reply with heap', async () => {
-      server = Hapi.Server({ load: { sampleInterval: 1000 }, host: 'test' });
-
+  describe('Hapi load reporting', () => {
+    beforeEach(async () => {
+      server = Hapi.Server({ load: { sampleInterval: 1000 } });
       await server.register({ plugin: require('../') });
-      console.log(server);
-      server.load.heapUsed = 100000;
-      // server.connections[0]._load.check = function () { return false; };
+      await server.start();
+    });
+
+    afterEach(async () => {
+      await server.stop();
+    });
+
+    it('should reply with heapUsed', async () => {
+      const fakeHeapUsed = 100000;
+      server.settings.load.heapUsed = fakeHeapUsed;
 
       const { result } = await server.inject('/ding');
       expect(result.ding).to.be.an.object();
       expect(result.ding.heap).to.be.a.number();
-      expect(result.ding.heap).to.equal(100000);
+      expect(result.ding.heap).to.equal(fakeHeapUsed);
     });
 
-    it('should reply with heap', async () => {
-      server = Hapi.Server({ load: { sampleInterval: 1000 }, host: 'test' });
-
-      await server.register({ plugin: require('../') });
-
-      server.connections[0]._load._process.load.eventLoopDelay = 1.34;
-      server.connections[0]._load.check = function () { return false; };
+    it('should reply with eventLoopDelay', async () => {
+      const fakeEventLoopDelay = 1.34;
+      server.settings.load.eventLoopDelay = fakeEventLoopDelay;
 
       const { result } = await server.inject('/ding');
       expect(result.ding).to.be.an.object();
@@ -112,60 +116,42 @@ describe('Registration', () => {
       expect(result.ding.loop).to.equal(1.34);
     });
 
-    // it('should not reply with heap or loop if the server does not have the load settings', (done) => {
-    //   const server = new Hapi.Server().connection({ host: 'test' });
-
-    //   server.register({ register: require('../') }, () => {
-    //     server.connections[0]._load._process.load.eventLoopDelay = 1.34;
-    //     server.connections[0]._load.check = function () { return false; };
-    //     server.inject('/ding', (res) => {
-    //       expect(res.result.ding).to.be.an.object();
-    //       expect(res.result.ding.loop).to.be.undefined();
-    //       expect(res.result.ding.heap).to.be.undefined();
-    //       done();
-    //     });
-    //   });
-    // });
+    it('should not reply with heap or loop if the server does not have the load settings', async () => {
+      const { result } = await server.inject('/ding');
+      expect(result.ding).to.be.an.object();
+      expect(result.ding.loop).to.be.undefined();
+      expect(result.ding.heap).to.be.undefined();
+    });
   });
 
-// describe('Custom /ding response', function () {
-//   it('should reply with given other data', function (done) {
-//     var server = new Hapi.Server().connection({ host: 'test' });
+  describe('Custom /ding response', () => {
+    beforeEach(() => {
+      server = Hapi.Server({ });
+    });
 
-//     server.register({ register: require('../'), options: { otherData: { version: '1.2.3' } } }, function () {
-//       server.inject('/ding', function (res) {
-//         expect(res.result.ding).to.be.an.object();
-//         expect(res.result.ding.version).to.be.an.string();
-//         expect(res.result.ding.version).to.equal('1.2.3');
-//         done();
-//       });
-//     });
-//   });
+    it('should reply with given other data', async () => {
+      await server.register({ plugin: require('../'), options: { otherData: { version: '1.2.3' } } });
+      const { result } = await server.inject('/ding');
+      expect(result.ding).to.be.an.object();
+      expect(result.ding.version).to.be.an.string();
+      expect(result.ding.version).to.equal('1.2.3');
+    });
 
-//   it('should reply without objectName', function (done) {
-//     var server = new Hapi.Server().connection({ host: 'test' });
+    it('should reply without objectName', async () => {
+      await server.register({ plugin: require('../'), options: { objectName: false } });
+      const { result } = await server.inject('/ding');
+      expect(result).to.be.an.object();
+      expect(result.ding).to.be.undefined();
+      expect(result.mem).to.be.a.number();
+    });
+  });
 
-//     server.register({ register: require('../'), options: { objectName: false } }, function () {
-//       server.inject('/ding', function (res) {
-//         expect(res.result).to.be.an.object();
-//         expect(res.result.ding).to.be.undefined();
-//         expect(res.result.mem).to.be.a.number();
-//         done();
-//       });
-//     });
-//   });
-
-//   it('should reply with a specific objectName', function (done) {
-//     var server = new Hapi.Server().connection({ host: 'test' });
-
-//     server.register({ register: require('../'), options: { objectName: 'foo' } }, function () {
-//       server.inject('/ding', function (res) {
-//         expect(res.result).to.be.an.object();
-//         expect(res.result.ding).to.be.undefined();
-//         expect(res.result.foo).to.be.an.object();
-//         expect(res.result.foo.mem).to.be.a.number();
-//         done();
-//       });
-//     });
-//   });
+  it('should reply with a specific objectName', async () => {
+    await server.register({ plugin: require('../'), options: { objectName: 'foo' } });
+    const { result } = await server.inject('/ding');
+    expect(result).to.be.an.object();
+    expect(result.ding).to.be.undefined();
+    expect(result.foo).to.be.an.object();
+    expect(result.foo.mem).to.be.a.number();
+  });
 });
