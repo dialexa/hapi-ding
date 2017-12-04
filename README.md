@@ -11,7 +11,7 @@ This plugin works with Hapi 17 and above.
 ```javascript
 const Hapi = require('hapi');
 
-const server = new Hapi.Server({
+const server = Hapi.Server({
   load: {
     sampleInterval: 1000
   },
