@@ -1,6 +1,6 @@
 {
   "name": "hapi-ding",
-  "version": "0.1.2",
+  "version": "1.0.0",
   "description": "Informational status page for Hapi apps",
   "main": "index.js",
   "scripts": {
