@@ -6,25 +6,21 @@ Ding Route Plugin for Hapi
 
 This Hapi plugin exposes a route at /ding (by default), which responds with useful server information.
 
-This plugin works with Hapi 8 and above.
+This plugin works with Hapi 17 and above.
 
 ```javascript
-var Hapi = require('hapi');
+const Hapi = require('hapi');
 
-var server = new Hapi.Server({
+const server = Hapi.Server({
   load: {
     sampleInterval: 1000
-  }
-});
-server.connection({
+  },
   host: 'localhost',
   port: 8000
 });
 
-server.register({
-  register: require('hapi-ding')
-}, function(){
-  server.start();
+await server.register({
+  plugin: require('hapi-ding')
 });
 ```
 
